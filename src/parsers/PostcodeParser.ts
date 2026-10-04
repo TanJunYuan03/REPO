@@ -6,19 +6,31 @@ export class PostcodeParser implements IComponentParser {
 
   parse(input: string): ParseResult {
 
-    const regex = /(?<!\d)\d{5}(?!\d)/;
+    const regex = /(?<!\d)\d{5}(?!\d)/g;
 
-    const match = input.match(regex);
+    const matches = [...input.matchAll(regex)]
+      .filter(match => {
+          const postcode = Number(match[0]);
 
-    if (!match) {
+          return postcode >= 1000 && postcode <= 98859;
+      });
+
+    if (matches.length === 0) {
       return {
         remaining: input
       };
     }
 
-    const postcode = Number(match[0]);
+    if (matches.length > 1) {
+      return {
+        remaining: input,
+        duplicate: true
+      };
+    }
 
-    if (postcode < 1000 || postcode > 98859) {
+    const match = matches[0];
+
+    if (match.index === undefined) {
       return {
         remaining: input
       };
@@ -30,7 +42,7 @@ export class PostcodeParser implements IComponentParser {
         input.substring(0, match.index) +
         " " +
         input.substring(
-            (match.index ?? 0) + match[0].length
+          match.index + match[0].length
         )
     };
   }

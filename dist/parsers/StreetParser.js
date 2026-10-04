@@ -4,14 +4,26 @@ exports.StreetParser = void 0;
 class StreetParser {
     component = "street";
     parse(input) {
-        const regex = /\b(Jalan|Jln|Lorong|Persiaran)\b/i;
-        const match = input.match(regex);
-        if (!match) {
+        const streetRegex = /\b(Jalan|Jln|Lorong|Persiaran)\b/gi;
+        const streetMatches = [...input.matchAll(streetRegex)];
+        if (streetMatches.length === 0) {
             return {
                 remaining: input
             };
         }
-        const startIndex = match.index ?? 0;
+        if (streetMatches.length > 1) {
+            return {
+                remaining: input,
+                duplicate: true
+            };
+        }
+        const match = streetMatches[0];
+        if (match.index === undefined) {
+            return {
+                remaining: input
+            };
+        }
+        const startIndex = match.index;
         const beforeStreet = input
             .substring(0, startIndex)
             .trim();

@@ -32,7 +32,19 @@ export class AddressParser {
 
       const parseResult = parser.parse(remaining);
 
+      if (parseResult.duplicate) {
+        throw new Error(
+          `Duplicate component detected: ${parser.component}.`
+        );
+      }
+
       if (parseResult.value) {
+
+        if (parsed[parser.component]) {
+          throw new Error(
+            `Duplicate component detected: ${parser.component}.`
+          );
+        }
 
         parsed[parser.component] =
             cleanOutput(parseResult.value);

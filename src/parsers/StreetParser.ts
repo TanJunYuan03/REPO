@@ -6,17 +6,33 @@ export class StreetParser implements IComponentParser {
 
   parse(input: string): ParseResult {
 
-    const regex = /\b(Jalan|Jln|Lorong|Persiaran)\b/i;
+    const streetRegex =
+      /\b(Jalan|Jln|Lorong|Persiaran)\b/gi;
 
-    const match = input.match(regex);
+    const streetMatches = [...input.matchAll(streetRegex)];
 
-    if (!match) {
+    if (streetMatches.length === 0) {
       return {
         remaining: input
       };
     }
 
-    const startIndex = match.index ?? 0;
+    if (streetMatches.length > 1) {
+      return {
+        remaining: input,
+        duplicate: true
+      };
+    }
+
+    const match = streetMatches[0];
+
+    if (match.index === undefined) {
+      return {
+        remaining: input
+      };
+    }
+
+    const startIndex = match.index;
 
     const beforeStreet = input
       .substring(0, startIndex)
@@ -50,15 +66,17 @@ export class StreetParser implements IComponentParser {
     if (postcodeMatch && postcodeMatch.index !== undefined) {
 
       const beforePostcode = afterStreetStart
-          .substring(0, postcodeMatch.index)
-          .trim();
+        .substring(0, postcodeMatch.index)
+        .trim();
 
       const afterPostcode = afterStreetStart
-          .substring(postcodeMatch.index)
-          .trim();
+        .substring(postcodeMatch.index)
+        .trim();
 
       const numberMatch =
-        beforePostcode.match(/\d+(?:[A-Za-z]|\/\d+|-\d+)?/);
+        beforePostcode.match(
+          /\d+(?:[A-Za-z]|\/\d+|-\d+)?/
+        );
 
       if (numberMatch && numberMatch.index !== undefined) {
 
@@ -77,7 +95,7 @@ export class StreetParser implements IComponentParser {
           value: street,
           remaining:
             `${beforeStreet} ${sectionAfterStreet} ${afterPostcode}`
-            .trim()
+              .trim()
         };
       }
 

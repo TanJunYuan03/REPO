@@ -4,15 +4,25 @@ exports.PostcodeParser = void 0;
 class PostcodeParser {
     component = "postcode";
     parse(input) {
-        const regex = /(?<!\d)\d{5}(?!\d)/;
-        const match = input.match(regex);
-        if (!match) {
+        const regex = /(?<!\d)\d{5}(?!\d)/g;
+        const matches = [...input.matchAll(regex)]
+            .filter(match => {
+            const postcode = Number(match[0]);
+            return postcode >= 1000 && postcode <= 98859;
+        });
+        if (matches.length === 0) {
             return {
                 remaining: input
             };
         }
-        const postcode = Number(match[0]);
-        if (postcode < 1000 || postcode > 98859) {
+        if (matches.length > 1) {
+            return {
+                remaining: input,
+                duplicate: true
+            };
+        }
+        const match = matches[0];
+        if (match.index === undefined) {
             return {
                 remaining: input
             };
@@ -21,7 +31,7 @@ class PostcodeParser {
             value: match[0],
             remaining: input.substring(0, match.index) +
                 " " +
-                input.substring((match.index ?? 0) + match[0].length)
+                input.substring(match.index + match[0].length)
         };
     }
 }

@@ -3,6 +3,7 @@ import { Address } from "../models/Address";
 export interface ParseResult {
   value?: string;
   remaining: string;
+  duplicate?: boolean
 }
 
 export interface IComponentParser {

@@ -10,10 +10,10 @@ const StreetParser_1 = require("./StreetParser");
 class AddressParser {
     parsers = [
         new AptParser_1.AptParser(),
+        new StreetParser_1.StreetParser(),
         new PostcodeParser_1.PostcodeParser(),
         new CityParser_1.CityParser(),
-        new StateParser_1.StateParser(),
-        new StreetParser_1.StreetParser()
+        new StateParser_1.StateParser()
     ];
     parse(input) {
         if (!input || input.trim().length === 0) {
@@ -23,7 +23,13 @@ class AddressParser {
         const parsed = {};
         for (const parser of this.parsers) {
             const parseResult = parser.parse(remaining);
+            if (parseResult.duplicate) {
+                throw new Error(`Duplicate component detected: ${parser.component}.`);
+            }
             if (parseResult.value) {
+                if (parsed[parser.component]) {
+                    throw new Error(`Duplicate component detected: ${parser.component}.`);
+                }
                 parsed[parser.component] =
                     (0, normalize_1.cleanOutput)(parseResult.value);
                 remaining = parseResult.remaining;

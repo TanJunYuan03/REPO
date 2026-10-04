@@ -8,24 +8,41 @@ class KnownValueParser {
     }
     parse(input) {
         const sortedValues = [...this.values].sort((a, b) => b.length - a.length);
+        let firstMatch;
+        let matchCount = 0;
         for (const value of sortedValues) {
             const parts = value.split(/\s+/);
             const pattern = parts
                 .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
                 .join("\\s*");
-            const regex = new RegExp(pattern, "i");
-            const match = input.match(regex);
-            if (match) {
-                return {
-                    value: value,
-                    remaining: input.substring(0, match.index) +
-                        " " +
-                        input.substring((match.index ?? 0) + match[0].length)
-                };
+            const regex = new RegExp(pattern, "gi");
+            const matches = [...input.matchAll(regex)];
+            if (matches.length > 0) {
+                matchCount += matches.length;
+                const first = matches[0];
+                if (first.index !== undefined &&
+                    (!firstMatch ||
+                        first.index < firstMatch.index)) {
+                    firstMatch = {
+                        value,
+                        index: first.index,
+                        length: first[0].length
+                    };
+                }
             }
         }
+        if (!firstMatch) {
+            return {
+                remaining: input
+            };
+        }
+        const remaining = input.substring(0, firstMatch.index) +
+            " " +
+            input.substring(firstMatch.index + firstMatch.length);
         return {
-            remaining: input
+            value: firstMatch.value,
+            remaining,
+            duplicate: matchCount > 1
         };
     }
 }

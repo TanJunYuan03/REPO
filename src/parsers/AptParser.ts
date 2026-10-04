@@ -6,21 +6,30 @@ export class AptParser implements IComponentParser {
 
   parse(input: string): ParseResult {
 
-    const regex = /No\s*\d+/i;
+    const regex = /No\s*\d+/gi;
 
-    const match = input.match(regex);
+    const matches = [...input.matchAll(regex)];
 
-    if (!match) {
+    if (matches.length === 0) {
       return {
-          remaining: input
+        remaining: input
       };
     }
 
+    if (matches.length > 1) {
+      return {
+        remaining: input,
+        duplicate: true
+      };
+    }
+
+    const match = matches[0];
+
     const number = match[0].match(/\d+/)?.[0];
 
-    if (!number) {
+    if (!number || match.index === undefined) {
       return {
-          remaining: input
+        remaining: input
       };
     }
 
@@ -30,7 +39,7 @@ export class AptParser implements IComponentParser {
         input.substring(0, match.index) +
         " " +
         input.substring(
-          (match.index ?? 0) + match[0].length
+          match.index + match[0].length
         )
     };
   }
